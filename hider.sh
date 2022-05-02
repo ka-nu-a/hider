@@ -4,10 +4,10 @@ readonly CONFIG_FILE="./hider.conf"
 readonly PALLALEL_EXEC=16
 
 if (( $# != 1 )); then
-  echo "need 1parameter (hide|show)."
+  echo "need 1parameter ([h]ide|[s]how)."
 	exit 1
-elif [[ $1 != "hide" ]] && [[ $1 != "show" ]]; then
-  echo "need 1parameter (hide|show)."
+elif [[ $1 != "hide" ]] && [[ $1 != "show" ]] && [[ $1 != "h" ]] && [[ $1 != "s" ]]; then
+  echo "need 1parameter ([h]ide|[s]how)."
 	exit 2
 fi
 
@@ -62,7 +62,7 @@ function hiderHide(){
 	if (( $? != 0 )); then
 	  return $?
 	fi
-	tar -zcvfP "$2" "$1" && rm -r "$1"
+	tar -zcvPf "$2" "$1" && rm -r "$1"
 }
 
 # .tar.gz to original file
@@ -73,7 +73,7 @@ function hiderShow(){
 	if (( $? != 0 )); then
 	  return $?
 	fi
-	tar -zxvfP "$1" -C "/" && rm -r "$1"
+	tar -zxvPf "$1" -C "/" && rm -r "$1"
 }
 
 export -f hiderCommonCheck hiderHide hiderShow
@@ -89,16 +89,16 @@ function makeFileList(){
 		if [[ ${line:0:1} == "#" ]]; then
 			continue
 		fi
-		if [[ $2 == "hide" ]]; then
+		if [[ $2 == "hide" ]] || [[ $2 == "h" ]]; then
 			echo -n ${line} | gawk -v FPAT='([^ ]+)|(\"[^\"]+\")' -v "SRC_ROOT=$3" -v "DEST_ROOT=$4" '{printf "%s%s %s%s\0", SRC_ROOT, $1, DEST_ROOT, $2}'
-		elif [[ $2 == "show" ]]; then
+		elif [[ $2 == "show" ]] || [[ $2 == "s" ]]; then
 			echo -n ${line} | gawk -v FPAT='([^ ]+)|(\"[^\"]+\")' -v "SRC_ROOT=$3" -v "DEST_ROOT=$4" '{printf "%s%s %s%s\0", DEST_ROOT, $2, SRC_ROOT, $1}'
 		fi
 	done
 }
 
-if [[ $1 == "hide" ]]; then
+if [[ $1 == "hide" ]] || [[ $1 == "h" ]]; then
 	makeFileList ${LIST_FILE} $1 $SRC_ROOT $DEST_ROOT | xargs -0 -P${PALLALEL_EXEC} -I{} bash -c "hiderHide {}"
-elif [[ $1 == "show" ]]; then
+elif [[ $1 == "show" ]] || [[ $1 == "s" ]]; then
 	makeFileList ${LIST_FILE} $1 $SRC_ROOT $DEST_ROOT | xargs -0 -P${PALLALEL_EXEC} -I{} bash -c "hiderShow {}"
 fi
