@@ -3,22 +3,39 @@ readonly LIST_FILE="./hider.list"
 readonly CONFIG_FILE="./hider.conf"
 readonly PALLALEL_EXEC=16
 
-if (( $# != 1 )); then
-  echo "need 1parameter ([h]ide|[s]how)."
-	exit 1
-elif [[ $1 != "hide" ]] && [[ $1 != "show" ]] && [[ $1 != "h" ]] && [[ $1 != "s" ]]; then
-  echo "need 1parameter ([h]ide|[s]how)."
-	exit 2
-fi
-
-if [ ! -e ${LIST_FILE} ]; then
-	echo "can not find ${LIST_FILE} exit..."
-	exit 1
-fi
-
 if [ -e ${CONFIG_FILE} ]; then
 	. ${CONFIG_FILE}
+else
+	echo "can not find ${CONFIG_FILE}. created."
+	cat << \
+EOT >> ${CONFIG_FILE}
+SRC_ROOT=
+DEST_ROOT=
+EOT
 fi
+if [ ! -e ${LIST_FILE} ]; then
+	cat << \
+EOT >> ${LIST_FILE}
+# format
+# src dest
+# 
+# source path is under the [SRC_ROOT]. can use abs path, then only undefined src_root at hider.conf.
+# destination path is under the [DEST_ROOT]. can use abs path, then only undefined dest_root at hider.conf.
+
+EOT
+	file_created+=( ${LIST_FILE} )
+	echo "can not find ${LIST_FILE}. exit..."
+	exit 1
+fi
+
+if (( $# != 1 )); then
+  echo "need 1parameter ([h]ide|[s]how)."
+	exit 2
+elif [[ $1 != "hide" ]] && [[ $1 != "show" ]] && [[ $1 != "h" ]] && [[ $1 != "s" ]]; then
+  echo "need 1parameter ([h]ide|[s]how)."
+	exit 3
+fi
+
 if [ ! -v SRC_ROOT ]; then
 	readonly SRC_ROOT=""
 fi
