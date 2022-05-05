@@ -1,3 +1,4 @@
 *.swp
 hider.conf
 hider.list
+local/
